@@ -63,9 +63,40 @@ function viewProfit() {
 
         }
         console.log(table.toString());
+        supervisorStart();
     })
 }
 
 function newDepartment() {
-
+    inquirer.prompt([{
+        name: "newItem",
+        type: "input",
+        message: "Name of item to add: "
+    }, {
+        name: "amount",
+        type: "number",
+        message: "How much of it to add: ",
+    }, {
+        name: "department",
+        type: "input",
+        message: "Which department: "
+    }, {
+        name: "price",
+        type: "number",
+        message: "How much does it cost? "
+    }, {
+        name: "amountOverhead",
+        type: "number",
+        message: "How much is over head costs: ",
+    }]).then(function(answer) {
+        var query = "INSERT INTO departments (department_name, over_head_costs) VALUES (?, ?)";
+        connection.query(query, [answer.department, answer.amountOverhead], function(err, res) {
+            if (err) throw err;
+        });
+        query = "INSERT INTO products (product_name, department_name, customer_price, stock, product_sales) VALUES (?, ?, ?, ?, 0);";
+        connection.query(query, [answer.newItem, answer.department, answer.price, answer.amount], function(err, res) {
+            if (err) throw err;
+        });
+        supervisorStart();
+    })
 }
