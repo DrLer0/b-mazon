@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/DrLer0/b-mazon#readme",
   "dependencies": {
+    "cli-table": "^0.3.1",
     "inquirer": "^7.0.5",
     "mysql": "^2.18.1"
   }

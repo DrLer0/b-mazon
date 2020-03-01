@@ -17,7 +17,6 @@ var connection = mysql.createConnection({
 
 connection.connect(function(err) {
     if (err) throw err;
-    displayProducts();
     setTimeout(runCustomer, 1000);
 });
 
@@ -32,6 +31,31 @@ function displayProducts() {
 }
 
 function runCustomer() {
+    displayProducts();
+    setTimeout(function() {
+        inquirer.prompt({
+            name: "action",
+            type: "rawlist",
+            message: "What do you want to do? ",
+            choices: [
+                "Buy an item!",
+                "Quit"
+            ]
+        }).then(function(answer) {
+            switch (answer.action) {
+                case "Buy an item!":
+                    buy();
+                    break;
+                case "Quit":
+                    connection.end();
+                    console.log("The End!");
+                    break;
+            }
+        });
+    }, 1000)
+}
+
+function buy() {
     inquirer
         .prompt([{
             name: "productID",
@@ -39,31 +63,26 @@ function runCustomer() {
             message: "Input ID of product you wish to purchase: "
         }, {
             name: "amount",
-            type: "input",
+            type: "number",
             message: "How many items to purchase: "
         }])
         .then(function(answer) {
             var query = "SELECT * FROM products WHERE item_id=" + answer.productID;
-            console.log(answer);
-            console.log(query);
             connection.query(query, function(err, res) {
                 if (err) throw err;
-                // console.log(res[0].stock);
                 var inStock = res[0].stock;
-                var price = res[0].customer_price;
+                var price = res[0].customer_price * answer.amount;
                 var id = res[0].item_id;
                 if (inStock < answer.amount) {
                     console.log("Insufficient quantity in stock.")
                 } else {
-                    var newStock = inStock - parseInt(answer.amount);
-                    console.log(newStock)
-                    var query = "UPDATE products SET stock = ? WHERE item_id = ?";
-                    connection.query(query, [newStock, id], function(err, res) {
+                    var query = "UPDATE products SET stock = stock - ? WHERE item_id = ?";
+                    connection.query(query, [answer.amount, id], function(err, res) {
                         if (err) throw err;
                         console.log("Total Cost: " + price);
                     });
-                    // displayProducts();
                 }
             })
+            setTimeout(runCustomer, 1000);
         });
 }
